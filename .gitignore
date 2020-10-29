@@ -1,4 +1,4 @@
 
 *.json
 scrapy/nhk_easy_news/__pycache__
-scrapy/nhk_easy_news/spider/__pycache__
+scrapy/nhk_easy_news/spiders/__pycache__
