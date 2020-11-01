@@ -4,16 +4,15 @@ from collections import Counter
 from collections.abc import Iterable, Mapping
 
 class MorphemeCounter():
-    def __init__(self, word_list=[], counter=None, ignore_list=[]):
-        assert(isinstance(word_list, MList))
-        self.word_list = word_list
+    def __init__(self, counter=None, ignore_list=[]):
         self.counter = Counter()
         if isinstance(counter, (Iterable, Mapping)):
             self.counter = Counter(counter)
         self.ignore_list = ignore_list
 
-    def process(self):
-        filtered = filter(self.ignore, self.word_list)
+    def process(self, word_list):
+        assert(isinstance(word_list, MList))
+        filtered = filter(self.ignore, word_list)
         self.counter.update(map(lambda x: x.genkei, filtered))
         
     def ignore(self, x):
