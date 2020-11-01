@@ -12,8 +12,6 @@ BOT_NAME = 'nhk_easy_news'
 SPIDER_MODULES = ['nhk_easy_news.spiders']
 NEWSPIDER_MODULE = 'nhk_easy_news.spiders'
 
-FEED_EXPORT_ENCODING = 'utf-8'
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'nhk_easy_news (+http://www.yourdomain.com)'
 
@@ -26,7 +24,7 @@ ROBOTSTXT_OBEY = True
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 0.25
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -63,9 +61,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'nhk_easy_news.pipelines.NhkEasyNewsPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'nhk_easy_news.pipelines.NhkEasyNewsPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
