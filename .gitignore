@@ -1,4 +1,7 @@
 
 *.json
+analyser/__pycache__
 scrapy/nhk_easy_news/__pycache__
 scrapy/nhk_easy_news/spiders/__pycache__
+*.txt
+*.jl
