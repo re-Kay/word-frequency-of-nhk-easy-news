@@ -5,26 +5,57 @@
 
 
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
-from nhk_easy_news.exporters import NhkEasyNewsItemExporter
-from pathlib import Path
-import datetime
+from scrapy.exporters import JsonLinesItemExporter
+from scrapy.exceptions import DropItem
+import os
+import errno
+import json
 
 class NhkEasyNewsPipeline:
     def __init__(self):
-        output_path = Path('./../result/').resolve()
-        self.output_name = str(output_path) + '\\'+ 'output-'+ datetime.datetime.today().strftime('%y-%m-%d') + '.json'
-        self.output_file = open(self.output_name, 'wb')
+        self.exporters = {}
+        self.files = []
+        self.crawled = {} # dictionary with 'yyyy-mm-dd' key and value of a set of all news_id of that day
 
-    def open_spider(self, spider):
-        self.exporter = NhkEasyNewsItemExporter(self.output_file, ensure_ascii=False) # utf-8 encoding
-        self.exporter.start_exporting()
-
-    def close_spider(self, spider):
-        self.exporter.finish_exporting()
-        self.output_file.close()
+    def read_archive(self, file_name):
+        with open(file_name, 'r', encoding='utf-8') as f:
+            for line in f.readlines():
+                data = json.loads(line)
+                try:
+                    self.crawled[data['date']].add(data['news_id'])
+                except KeyError:
+                    self.crawled[data['date']] = {data['news_id']}
 
     def process_item(self, item, spider):
-        # to do: check if item exists in last crawling
-        self.exporter.export_item(item)
-        return item
+        if item['news_id'] == '-1':
+            raise DropItem('Not in correct format')
+        yyyymm = item['date'][0:7]
+        if yyyymm not in self.exporters:
+            file_name = './../result/output-'+ yyyymm + '.jl'
+            if os.path.exists(os.path.dirname(file_name)):
+                if os.path.exists(file_name):
+                    self.read_archive(file_name)    # read in archived ids for later dropping
+            else:
+                try:    
+                    os.makedirs(os.path.dirname(file_name)) # create dir for storing archive
+                    self.crawled[yyyymm] = {} 
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
+            output_file = open(file_name, 'ab+') # create or append
+            self.files.append(output_file)
+            self.exporters[yyyymm] = JsonLinesItemExporter(output_file, ensure_ascii=False)
+
+        if item['date'] in self.crawled and item['news_id'] in self.crawled[item['date']]:
+            raise DropItem(f'News item {item["news_id"]} is crawled already')
+        else:
+            self.exporters[yyyymm].export_item(item)
+            try:
+                self.crawled[item['date']].add(item['news_id'])
+            except KeyError:
+                self.crawled[item['date']] = {item['news_id']}
+            return item
+
+    def close_spider(self, spider):
+        for file in self.files:
+            file.close()
